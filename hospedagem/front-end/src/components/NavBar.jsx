@@ -15,18 +15,18 @@ function NavBar() {
                 {/* LINKS */}
                 <ul className="flex items-center gap-8 text-gray-600 font-medium">
                     <li>
+                        <Link to="/" className="hover:text-black transition">
+                            Visão Geral
+                        </Link>
+                    </li>
+                    <li>
                         <Link to="/hospedagem" className="hover:text-black transition">
-                            Imóveis
+                            Quartos
                         </Link>
                     </li>
                     <li>
-                        <Link to="/populares" className="hover:text-black transition">
-                            Populares
-                        </Link>
-                    </li>
-                    <li>
-                        <Link to="/contato" className="hover:text-black transition">
-                            Contatos
+                        <Link to="/cadastro" className="hover:text-black transition">
+                            Clientes
                         </Link>
                     </li>
                 </ul>
