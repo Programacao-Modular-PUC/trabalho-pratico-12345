@@ -32,3 +32,4 @@ back-end/*.war
 *.njsproj
 *.sln
 *.sw?
+src/back-end/target/
