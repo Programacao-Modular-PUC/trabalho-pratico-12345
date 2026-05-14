@@ -15,7 +15,14 @@ public class QuartoFamilia extends Quarto {
 
     @Override
     public double calcularDiaria(int numeroPessoas, boolean solicitouBerco) {
-        int capacidade = camasSolteiro + camasCasal * 2 + camasQueenKing * 2;
+        validarConfiguracao();
+
+        int capacidade = calcularCapacidade();
+
+        if (numeroPessoas < 1) {
+            throw new NegocioException("O número de hóspedes deve ser maior que zero.");
+        }
+
         if (numeroPessoas > capacidade) {
             throw new NegocioException(
                 "Número de hóspedes (" + numeroPessoas + ") excede a capacidade máxima do quarto família (" + capacidade + ")."
@@ -43,6 +50,24 @@ public class QuartoFamilia extends Quarto {
         }
 
         return valor * (1 - desconto);
+    }
+
+    private void validarConfiguracao() {
+        if (camasSolteiro < 0 || camasCasal < 0 || camasQueenKing < 0) {
+            throw new NegocioException("A quantidade de camas não pode ser negativa.");
+        }
+
+        if (quantidadeAmbientes < 1) {
+            throw new NegocioException("Quarto família deve ter pelo menos 1 ambiente.");
+        }
+
+        if (calcularCapacidade() < 1) {
+            throw new NegocioException("Quarto família deve ter pelo menos uma cama configurada.");
+        }
+    }
+
+    private int calcularCapacidade() {
+        return camasSolteiro + camasCasal * 2 + camasQueenKing * 2;
     }
 
     public int getCamasSolteiro() { return camasSolteiro; }
