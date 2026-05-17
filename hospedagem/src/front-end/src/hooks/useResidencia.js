@@ -1,57 +1,57 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  createResidencia,
-  deleteResidencia,
-  getResidencia,
-  listResidencias,
-  updateResidencia,
+    createResidencia,
+    deleteResidencia,
+    getResidencia,
+    listResidencias,
+    updateResidencia,
 } from '../services/residencia.service';
 
 export const residenciaKeys = {
-  all: ['residencias'],
-  detail: (id) => ['residencias', id],
+    all: ['residencias'],
+    detail: (id) => ['residencias', id],
 };
 
 export function useResidencias() {
-  return useQuery({
-    queryKey: residenciaKeys.all,
-    queryFn: listResidencias,
-  });
+    return useQuery({
+        queryKey: residenciaKeys.all,
+        queryFn: listResidencias,
+    });
 }
 
 export function useResidencia(id) {
-  return useQuery({
-    queryKey: residenciaKeys.detail(id),
-    queryFn: () => getResidencia(id),
-    enabled: Boolean(id),
-  });
+    return useQuery({
+        queryKey: residenciaKeys.detail(id),
+        queryFn: () => getResidencia(id),
+        enabled: Boolean(id),
+    });
 }
 
 export function useCreateResidencia() {
-  const queryClient = useQueryClient();
+    const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: createResidencia,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: residenciaKeys.all }),
-  });
+    return useMutation({
+        mutationFn: createResidencia,
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: residenciaKeys.all }),
+    });
 }
 
 export function useUpdateResidencia() {
-  const queryClient = useQueryClient();
+    const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: ({ id, payload }) => updateResidencia(id, payload),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: residenciaKeys.all }),
-  });
+    return useMutation({
+        mutationFn: ({ id, payload }) => updateResidencia(id, payload),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: residenciaKeys.all }),
+    });
 }
 
 export function useDeleteResidencia() {
-  const queryClient = useQueryClient();
+    const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: deleteResidencia,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: residenciaKeys.all }),
-  });
+    return useMutation({
+        mutationFn: deleteResidencia,
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: residenciaKeys.all }),
+    });
 }
 
 // CONVERSAO

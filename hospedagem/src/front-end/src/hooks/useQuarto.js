@@ -1,57 +1,57 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  createQuarto,
-  deleteQuarto,
-  getQuarto,
-  listQuartos,
-  updateQuarto,
+    createQuarto,
+    deleteQuarto,
+    getQuarto,
+    listQuartos,
+    updateQuarto,
 } from '../services/quarto.service';
 
 export const quartoKeys = {
-  all: ['quartos'],
-  detail: (id) => ['quartos', id],
+    all: ['quartos'],
+    detail: (id) => ['quartos', id],
 };
 
 export function useQuartos() {
-  return useQuery({
-    queryKey: quartoKeys.all,
-    queryFn: listQuartos,
-  });
+    return useQuery({
+        queryKey: quartoKeys.all,
+        queryFn: listQuartos,
+    });
 }
 
 export function useQuarto(id) {
-  return useQuery({
-    queryKey: quartoKeys.detail(id),
-    queryFn: () => getQuarto(id),
-    enabled: Boolean(id),
-  });
+    return useQuery({
+        queryKey: quartoKeys.detail(id),
+        queryFn: () => getQuarto(id),
+        enabled: Boolean(id),
+    });
 }
 
 export function useCreateQuarto() {
-  const queryClient = useQueryClient();
+    const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: createQuarto,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: quartoKeys.all }),
-  });
+    return useMutation({
+        mutationFn: createQuarto,
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: quartoKeys.all }),
+    });
 }
 
 export function useUpdateQuarto() {
-  const queryClient = useQueryClient();
+    const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: ({ id, payload }) => updateQuarto(id, payload),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: quartoKeys.all }),
-  });
+    return useMutation({
+        mutationFn: ({ id, payload }) => updateQuarto(id, payload),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: quartoKeys.all }),
+    });
 }
 
 export function useDeleteQuarto() {
-  const queryClient = useQueryClient();
+    const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: deleteQuarto,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: quartoKeys.all }),
-  });
+    return useMutation({
+        mutationFn: deleteQuarto,
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: quartoKeys.all }),
+    });
 }
 
 // CONVERSAO

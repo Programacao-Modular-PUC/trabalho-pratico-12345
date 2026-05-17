@@ -1,57 +1,57 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  createAluguel,
-  deleteAluguel,
-  getAluguel,
-  listAlugueis,
-  updateAluguel,
+    createAluguel,
+    deleteAluguel,
+    getAluguel,
+    listAlugueis,
+    updateAluguel,
 } from '../services/aluguel.service';
 
 export const aluguelKeys = {
-  all: ['alugueis'],
-  detail: (id) => ['alugueis', id],
+    all: ['alugueis'],
+    detail: (id) => ['alugueis', id],
 };
 
 export function useAlugueis() {
-  return useQuery({
-    queryKey: aluguelKeys.all,
-    queryFn: listAlugueis,
-  });
+    return useQuery({
+        queryKey: aluguelKeys.all,
+        queryFn: listAlugueis,
+    });
 }
 
 export function useAluguel(id) {
-  return useQuery({
-    queryKey: aluguelKeys.detail(id),
-    queryFn: () => getAluguel(id),
-    enabled: Boolean(id),
-  });
+    return useQuery({
+        queryKey: aluguelKeys.detail(id),
+        queryFn: () => getAluguel(id),
+        enabled: Boolean(id),
+    });
 }
 
 export function useCreateAluguel() {
-  const queryClient = useQueryClient();
+    const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: createAluguel,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: aluguelKeys.all }),
-  });
+    return useMutation({
+        mutationFn: createAluguel,
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: aluguelKeys.all }),
+    });
 }
 
 export function useUpdateAluguel() {
-  const queryClient = useQueryClient();
+    const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: ({ id, payload }) => updateAluguel(id, payload),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: aluguelKeys.all }),
-  });
+    return useMutation({
+        mutationFn: ({ id, payload }) => updateAluguel(id, payload),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: aluguelKeys.all }),
+    });
 }
 
 export function useDeleteAluguel() {
-  const queryClient = useQueryClient();
+    const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: deleteAluguel,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: aluguelKeys.all }),
-  });
+    return useMutation({
+        mutationFn: deleteAluguel,
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: aluguelKeys.all }),
+    });
 }
 
 // CONVERSAO
