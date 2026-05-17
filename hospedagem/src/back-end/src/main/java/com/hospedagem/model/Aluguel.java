@@ -1,6 +1,12 @@
 package com.hospedagem.model;
 
-import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import java.time.LocalDate;
 
 @Entity
@@ -15,11 +21,12 @@ public class Aluguel {
     private Cliente cliente;
 
     @ManyToOne(optional = false)
+    @JsonIgnoreProperties("residencia")
     private Quarto quarto;
 
-    private LocalDate dataCheckIn;
-    private LocalDate dataCheckOut;
-    private int numeroPessoas;
+    private LocalDate dataEntrada;
+    private LocalDate dataSaida;
+    private int numeroDeHospedes;
     private boolean solicitouBerco;
     private Double valorTotal;
 
@@ -32,14 +39,14 @@ public class Aluguel {
     public Quarto getQuarto() { return quarto; }
     public void setQuarto(Quarto quarto) { this.quarto = quarto; }
 
-    public LocalDate getDataCheckIn() { return dataCheckIn; }
-    public void setDataCheckIn(LocalDate dataCheckIn) { this.dataCheckIn = dataCheckIn; }
+    public LocalDate getDataEntrada() { return dataEntrada; }
+    public void setDataEntrada(LocalDate dataEntrada) { this.dataEntrada = dataEntrada; }
 
-    public LocalDate getDataCheckOut() { return dataCheckOut; }
-    public void setDataCheckOut(LocalDate dataCheckOut) { this.dataCheckOut = dataCheckOut; }
+    public LocalDate getDataSaida() { return dataSaida; }
+    public void setDataSaida(LocalDate dataSaida) { this.dataSaida = dataSaida; }
 
-    public int getNumeroPessoas() { return numeroPessoas; }
-    public void setNumeroPessoas(int numeroPessoas) { this.numeroPessoas = numeroPessoas; }
+    public int getNumeroDeHospedes() { return numeroDeHospedes; }
+    public void setNumeroDeHospedes(int numeroDeHospedes) { this.numeroDeHospedes = numeroDeHospedes; }
 
     public boolean isSolicitouBerco() { return solicitouBerco; }
     public void setSolicitouBerco(boolean solicitouBerco) { this.solicitouBerco = solicitouBerco; }

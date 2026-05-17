@@ -6,13 +6,6 @@ export default defineConfig({
     plugins: [react(), tailwindcss()],
     server: {
         port: 5173,
-        proxy: {
-            // Redireciona /api/* para o backend Spring Boot (porta 8080)
-            '/api': {
-                target: 'http://localhost:8080',
-                changeOrigin: true,
-            },
-        },
     },
     build: {
         outDir: '../dist',

@@ -8,24 +8,29 @@ import jakarta.persistence.Table;
 @Table(name = "quartos_individuais")
 public class QuartoIndividual extends Quarto {
 
-    private int numeroCamas;
+    private int numeroDeCamas;
+    private Double adicionalPorCama = 30.0;
 
     @Override
-    public double calcularDiaria(int numeroPessoas, boolean solicitouBerco) {
+    public double calcularDiaria(int numeroDeHospedes, boolean solicitouBerco) {
         if (solicitouBerco) {
-            throw new NegocioException("Quarto individual não permite berço.");
+            throw new NegocioException("Quarto individual nao permite berco.");
         }
-        if (numeroPessoas > numeroCamas) {
-            throw new NegocioException(
-                "Número de hóspedes (" + numeroPessoas + ") excede a capacidade do quarto individual (" + numeroCamas + ")."
-            );
-        }
-        if (numeroCamas == 1) {
-            return getValorBase();
-        }
-        return getValorBase() + (numeroCamas - 1) * 50.0;
+        return getValorBase() + (adicionalPorCama * (numeroDeCamas - 1));
     }
 
-    public int getNumeroCamas() { return numeroCamas; }
-    public void setNumeroCamas(int numeroCamas) { this.numeroCamas = numeroCamas; }
+    @Override
+    public int calcularLimiteHospedes(boolean solicitouBerco) {
+        if (solicitouBerco) {
+            throw new NegocioException("Quarto individual nao permite berco.");
+        }
+        return numeroDeCamas;
+    }
+
+    public int getNumeroDeCamas() { return numeroDeCamas; }
+    public void setNumeroDeCamas(int numeroDeCamas) { this.numeroDeCamas = numeroDeCamas; }
+
+    public Double getAdicionalPorCama() { return adicionalPorCama; }
+    public void setAdicionalPorCama(Double adicionalPorCama) { this.adicionalPorCama = adicionalPorCama; }
 }
+

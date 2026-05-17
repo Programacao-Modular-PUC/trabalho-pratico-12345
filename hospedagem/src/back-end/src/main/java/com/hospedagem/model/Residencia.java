@@ -1,6 +1,13 @@
 package com.hospedagem.model;
 
-import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,8 +25,8 @@ public class Residencia {
     @Column(columnDefinition = "TEXT")
     private String descricao;
 
-    @OneToMany
-    @JoinColumn(name = "residencia_id")
+    @OneToMany(mappedBy = "residencia")
+    @JsonIgnoreProperties("residencia")
     private List<Quarto> quartos = new ArrayList<>();
 
     public Long getId() { return id; }

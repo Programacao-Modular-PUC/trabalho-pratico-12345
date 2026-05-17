@@ -1,59 +1,69 @@
 package com.hospedagem.model;
 
-import com.hospedagem.exception.NegocioException;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "quartos_familia")
 public class QuartoFamilia extends Quarto {
 
-    private int camasSolteiro;
-    private int camasCasal;
-    private int camasQueenKing;
-    private int quantidadeAmbientes;
+    @ElementCollection
+    @Enumerated(EnumType.STRING)
+    private List<TipoCamaFamilia> listaDeCamas = new ArrayList<>();
+
+    private int quantidadeDeAmbientes;
 
     @Override
-    public double calcularDiaria(int numeroPessoas, boolean solicitouBerco) {
-        int capacidade = camasSolteiro + camasCasal * 2 + camasQueenKing * 2;
-        if (numeroPessoas > capacidade) {
-            throw new NegocioException(
-                "Número de hóspedes (" + numeroPessoas + ") excede a capacidade máxima do quarto família (" + capacidade + ")."
-            );
-        }
-
-        double valor;
-        if (numeroPessoas <= 2) {
-            valor = getValorBase();
-        } else if (numeroPessoas <= 4) {
-            valor = getValorBase() * 1.20;
-        } else if (numeroPessoas <= 6) {
-            valor = getValorBase() * 1.40;
-        } else {
-            valor = getValorBase() * 1.60;
-        }
-
-        double desconto = 0.0;
-        if (numeroPessoas == 4) {
-            desconto = 0.05;
-        } else if (numeroPessoas == 6) {
-            desconto = 0.10;
-        } else if (numeroPessoas >= 8) {
-            desconto = 0.15;
-        }
+    public double calcularDiaria(int numeroDeHospedes, boolean solicitouBerco) {
+        // calcula adicional por quantidade de hospedes
+        double valor = getValorBase() * (1 + (numeroDeHospedes * 0.08));
+        double desconto = calcularDesconto(numeroDeHospedes);
 
         return valor * (1 - desconto);
     }
 
-    public int getCamasSolteiro() { return camasSolteiro; }
-    public void setCamasSolteiro(int camasSolteiro) { this.camasSolteiro = camasSolteiro; }
+    @Override
+    public int calcularLimiteHospedes(boolean solicitouBerco) {
+        return getCapacidadeMaxima();
+    }
 
-    public int getCamasCasal() { return camasCasal; }
-    public void setCamasCasal(int camasCasal) { this.camasCasal = camasCasal; }
+    public int getCapacidadeMaxima() {
+        if (listaDeCamas == null) {
+            return 0;
+        }
 
-    public int getCamasQueenKing() { return camasQueenKing; }
-    public void setCamasQueenKing(int camasQueenKing) { this.camasQueenKing = camasQueenKing; }
+        int total = 0;
+        for (TipoCamaFamilia cama : listaDeCamas) {
+            if (cama == TipoCamaFamilia.SOLTEIRO) {
+                total += 1;
+            } else {
+                total += 2;
+            }
+        }
+        return total;
+    }
 
-    public int getQuantidadeAmbientes() { return quantidadeAmbientes; }
-    public void setQuantidadeAmbientes(int quantidadeAmbientes) { this.quantidadeAmbientes = quantidadeAmbientes; }
+    private double calcularDesconto(int numeroDeHospedes) {
+        if (numeroDeHospedes >= 8) {
+            return 0.15;
+        }
+        if (numeroDeHospedes >= 6) {
+            return 0.10;
+        }
+        if (numeroDeHospedes >= 4) {
+            return 0.05;
+        }
+        return 0.0;
+    }
+
+    public List<TipoCamaFamilia> getListaDeCamas() { return listaDeCamas; }
+    public void setListaDeCamas(List<TipoCamaFamilia> listaDeCamas) { this.listaDeCamas = listaDeCamas; }
+
+    public int getQuantidadeDeAmbientes() { return quantidadeDeAmbientes; }
+    public void setQuantidadeDeAmbientes(int quantidadeDeAmbientes) { this.quantidadeDeAmbientes = quantidadeDeAmbientes; }
 }

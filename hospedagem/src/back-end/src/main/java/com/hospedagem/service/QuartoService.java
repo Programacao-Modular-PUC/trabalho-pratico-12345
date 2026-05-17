@@ -2,8 +2,13 @@ package com.hospedagem.service;
 
 import com.hospedagem.dto.QuartoDTO;
 import com.hospedagem.exception.NegocioException;
-import com.hospedagem.model.*;
+import com.hospedagem.model.Quarto;
+import com.hospedagem.model.QuartoDuplo;
+import com.hospedagem.model.QuartoFamilia;
+import com.hospedagem.model.QuartoIndividual;
+import com.hospedagem.model.Residencia;
 import com.hospedagem.repository.QuartoRepository;
+import com.hospedagem.repository.ResidenciaRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -13,9 +18,11 @@ import java.util.List;
 public class QuartoService {
 
     private final QuartoRepository repository;
+    private final ResidenciaRepository residenciaRepository;
 
-    public QuartoService(QuartoRepository repository) {
+    public QuartoService(QuartoRepository repository, ResidenciaRepository residenciaRepository) {
         this.repository = repository;
+        this.residenciaRepository = residenciaRepository;
     }
 
     public List<Quarto> listar() {
@@ -24,7 +31,7 @@ public class QuartoService {
 
     public Quarto buscarPorId(Long id) {
         return repository.findById(id)
-            .orElseThrow(() -> new EntityNotFoundException("Quarto não encontrado: " + id));
+            .orElseThrow(() -> new EntityNotFoundException("Quarto nao encontrado: " + id));
     }
 
     public Quarto criar(QuartoDTO dto) {
@@ -33,14 +40,16 @@ public class QuartoService {
     }
 
     public Quarto atualizar(Long id, QuartoDTO dto) {
-        Quarto existente = buscarPorId(id);
-        String tipoExistente = existente.getClass().getSimpleName().replace("Quarto", "").toLowerCase();
-        if (!tipoExistente.equals(dto.getTipo())) {
-            throw new NegocioException("Não é possível alterar o tipo do quarto. Tipo atual: " + tipoExistente);
+        Quarto quarto = buscarPorId(id);
+
+        if (!quarto.getTipo().equalsIgnoreCase(dto.getTipo())) {
+            throw new NegocioException("Nao e possivel alterar o tipo do quarto.");
         }
-        preencherCamposComuns(existente, dto);
-        preencherCamposEspecificos(existente, dto);
-        return repository.save(existente);
+
+        preencherCamposComuns(quarto, dto);
+        preencherCamposEspecificos(quarto, dto);
+
+        return repository.save(quarto);
     }
 
     public void deletar(Long id) {
@@ -49,59 +58,100 @@ public class QuartoService {
     }
 
     private Quarto construirQuarto(QuartoDTO dto) {
-        return switch (dto.getTipo().toLowerCase()) {
-            case "individual" -> criarIndividual(dto);
-            case "duplo"      -> criarDuplo(dto);
-            case "familia"    -> criarFamilia(dto);
-            default -> throw new NegocioException("Tipo de quarto inválido: " + dto.getTipo() + ". Use: individual, duplo ou familia.");
+        String tipo = dto.getTipo().trim().toUpperCase();
+
+        return switch (tipo) {
+            case "INDIVIDUAL" -> criarIndividual(dto);
+            case "DUPLO" -> criarDuplo(dto);
+            case "FAMILIA" -> criarFamilia(dto);
+            default -> throw new NegocioException("Tipo de quarto invalido. Use INDIVIDUAL, DUPLO ou FAMILIA.");
         };
     }
 
     private QuartoIndividual criarIndividual(QuartoDTO dto) {
-        if (dto.getNumeroCamas() == null || dto.getNumeroCamas() < 1) {
-            throw new NegocioException("Quarto individual requer numeroCamas >= 1.");
-        }
-        QuartoIndividual q = new QuartoIndividual();
-        preencherCamposComuns(q, dto);
-        q.setNumeroCamas(dto.getNumeroCamas());
-        return q;
+        QuartoIndividual quarto = new QuartoIndividual();
+        preencherCamposComuns(quarto, dto);
+        preencherIndividual(quarto, dto);
+        return quarto;
     }
 
     private QuartoDuplo criarDuplo(QuartoDTO dto) {
-        if (dto.getTipoCama() == null) {
-            throw new NegocioException("Quarto duplo requer tipoCama (CASAL, QUEEN ou KING).");
-        }
-        QuartoDuplo q = new QuartoDuplo();
-        preencherCamposComuns(q, dto);
-        q.setTipoCama(dto.getTipoCama());
-        q.setPossuiBerco(dto.getPossuiBerco() != null && dto.getPossuiBerco());
-        return q;
+        QuartoDuplo quarto = new QuartoDuplo();
+        preencherCamposComuns(quarto, dto);
+        preencherDuplo(quarto, dto);
+        return quarto;
     }
 
     private QuartoFamilia criarFamilia(QuartoDTO dto) {
-        QuartoFamilia q = new QuartoFamilia();
-        preencherCamposComuns(q, dto);
-        preencherCamposEspecificos(q, dto);
-        return q;
+        QuartoFamilia quarto = new QuartoFamilia();
+        preencherCamposComuns(quarto, dto);
+        preencherFamilia(quarto, dto);
+        return quarto;
     }
 
     private void preencherCamposComuns(Quarto quarto, QuartoDTO dto) {
+        // @NotNull no DTO já garante que valorBase não é null aqui; só checamos valor negativo
+        if (dto.getValorBase() < 0) {
+            throw new NegocioException("Valor base deve ser maior ou igual a zero.");
+        }
+
+        Residencia residencia = residenciaRepository.findById(dto.getResidenciaId())
+            .orElseThrow(() -> new EntityNotFoundException("Residencia nao encontrada: " + dto.getResidenciaId()));
+
         quarto.setValorBase(dto.getValorBase());
-        quarto.setPossuiAr(dto.isPossuiAr());
+        quarto.setPossuiAR(dto.isPossuiAR());
         quarto.setPossuiHidro(dto.isPossuiHidro());
+        quarto.setResidencia(residencia);
     }
 
     private void preencherCamposEspecificos(Quarto quarto, QuartoDTO dto) {
-        if (quarto instanceof QuartoIndividual q) {
-            if (dto.getNumeroCamas() != null) q.setNumeroCamas(dto.getNumeroCamas());
-        } else if (quarto instanceof QuartoDuplo q) {
-            if (dto.getTipoCama() != null) q.setTipoCama(dto.getTipoCama());
-            if (dto.getPossuiBerco() != null) q.setPossuiBerco(dto.getPossuiBerco());
-        } else if (quarto instanceof QuartoFamilia q) {
-            if (dto.getCamasSolteiro() != null) q.setCamasSolteiro(dto.getCamasSolteiro());
-            if (dto.getCamasCasal() != null) q.setCamasCasal(dto.getCamasCasal());
-            if (dto.getCamasQueenKing() != null) q.setCamasQueenKing(dto.getCamasQueenKing());
-            if (dto.getQuantidadeAmbientes() != null) q.setQuantidadeAmbientes(dto.getQuantidadeAmbientes());
+        if (quarto instanceof QuartoIndividual individual) {
+            preencherIndividual(individual, dto);
+        } else if (quarto instanceof QuartoDuplo duplo) {
+            preencherDuplo(duplo, dto);
+        } else if (quarto instanceof QuartoFamilia familia) {
+            preencherFamilia(familia, dto);
         }
     }
+
+    private void preencherIndividual(QuartoIndividual quarto, QuartoDTO dto) {
+        if (dto.getNumeroDeCamas() == null || dto.getNumeroDeCamas() < 1) {
+            throw new NegocioException("Quarto individual precisa ter pelo menos 1 cama.");
+        }
+
+        if (dto.getAdicionalPorCama() != null && dto.getAdicionalPorCama() < 0) {
+            throw new NegocioException("Adicional por cama nao pode ser negativo.");
+        }
+
+        quarto.setNumeroDeCamas(dto.getNumeroDeCamas());
+        quarto.setAdicionalPorCama(dto.getAdicionalPorCama() == null ? 30.0 : dto.getAdicionalPorCama());
+    }
+
+    private void preencherDuplo(QuartoDuplo quarto, QuartoDTO dto) {
+        if (dto.getTipoCama() == null) {
+            throw new NegocioException("Quarto duplo precisa informar tipoCama: CASAL, QUEEN ou KING.");
+        }
+
+        quarto.setTipoCama(dto.getTipoCama());
+        quarto.setPossuiBerco(dto.getSolicitouBerco() != null && dto.getSolicitouBerco());
+    }
+
+    private void preencherFamilia(QuartoFamilia quarto, QuartoDTO dto) {
+        if (dto.getListaDeCamas() == null || dto.getListaDeCamas().isEmpty()) {
+            throw new NegocioException("Quarto familia precisa ter uma listaDeCamas.");
+        }
+
+        if (dto.getQuantidadeDeAmbientes() == null || dto.getQuantidadeDeAmbientes() < 1) {
+            throw new NegocioException("Quarto familia precisa ter pelo menos 1 ambiente.");
+        }
+
+        quarto.setListaDeCamas(dto.getListaDeCamas());
+        quarto.setQuantidadeDeAmbientes(dto.getQuantidadeDeAmbientes());
+    }
 }
+
+/*
+ * O QUE MUDOU:
+ * - preencherDuplo: `setSolicitouBerco` → `setPossuiBerco` para acompanhar o rename no model.
+ * - preencherCamposComuns: removida verificação `valorBase == null` — o campo é @NotNull no DTO e já é barrado pelo Bean Validation antes de chegar ao service.
+ */
