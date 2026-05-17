@@ -1,5 +1,6 @@
 package com.hospedagem.dto;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
@@ -13,13 +14,16 @@ public class AluguelDTO {
     private Long quartoId;
 
     @NotNull
-    private LocalDate dataCheckIn;
+    @JsonAlias("dataCheckIn")
+    private LocalDate dataEntrada;
 
     @NotNull
-    private LocalDate dataCheckOut;
+    @JsonAlias("dataCheckOut")
+    private LocalDate dataSaida;
 
+    @JsonAlias("numeroPessoas")
     @Min(1)
-    private int numeroPessoas;
+    private int numeroDeHospedes;
 
     private boolean solicitouBerco;
 
@@ -29,14 +33,14 @@ public class AluguelDTO {
     public Long getQuartoId() { return quartoId; }
     public void setQuartoId(Long quartoId) { this.quartoId = quartoId; }
 
-    public LocalDate getDataCheckIn() { return dataCheckIn; }
-    public void setDataCheckIn(LocalDate dataCheckIn) { this.dataCheckIn = dataCheckIn; }
+    public LocalDate getDataEntrada() { return dataEntrada; }
+    public void setDataEntrada(LocalDate dataEntrada) { this.dataEntrada = dataEntrada; }
 
-    public LocalDate getDataCheckOut() { return dataCheckOut; }
-    public void setDataCheckOut(LocalDate dataCheckOut) { this.dataCheckOut = dataCheckOut; }
+    public LocalDate getDataSaida() { return dataSaida; }
+    public void setDataSaida(LocalDate dataSaida) { this.dataSaida = dataSaida; }
 
-    public int getNumeroPessoas() { return numeroPessoas; }
-    public void setNumeroPessoas(int numeroPessoas) { this.numeroPessoas = numeroPessoas; }
+    public int getNumeroDeHospedes() { return numeroDeHospedes; }
+    public void setNumeroDeHospedes(int numeroDeHospedes) { this.numeroDeHospedes = numeroDeHospedes; }
 
     public boolean isSolicitouBerco() { return solicitouBerco; }
     public void setSolicitouBerco(boolean solicitouBerco) { this.solicitouBerco = solicitouBerco; }
