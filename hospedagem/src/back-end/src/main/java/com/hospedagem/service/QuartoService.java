@@ -13,6 +13,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Locale;
 
 @Service
 public class QuartoService {
@@ -27,6 +28,14 @@ public class QuartoService {
 
     public List<Quarto> listar() {
         return repository.findAll();
+    }
+
+    public List<Quarto> listarPorTipo(String tipo) {
+        String tipoNormalizado = normalizarTipo(tipo);
+
+        return repository.findAll().stream()
+            .filter(quarto -> quarto.getTipo().equals(tipoNormalizado))
+            .toList();
     }
 
     public Quarto buscarPorId(Long id) {
@@ -58,7 +67,7 @@ public class QuartoService {
     }
 
     private Quarto construirQuarto(QuartoDTO dto) {
-        String tipo = dto.getTipo().trim().toUpperCase();
+        String tipo = normalizarTipo(dto.getTipo());
 
         return switch (tipo) {
             case "INDIVIDUAL" -> criarIndividual(dto);
@@ -147,6 +156,22 @@ public class QuartoService {
 
         quarto.setListaDeCamas(dto.getListaDeCamas());
         quarto.setQuantidadeDeAmbientes(dto.getQuantidadeDeAmbientes());
+    }
+
+    private String normalizarTipo(String tipo) {
+        if (tipo == null || tipo.trim().isEmpty()) {
+            throw new NegocioException("Tipo de quarto deve ser informado.");
+        }
+
+        String tipoNormalizado = tipo.trim().toUpperCase(Locale.ROOT);
+
+        if (!tipoNormalizado.equals("INDIVIDUAL")
+            && !tipoNormalizado.equals("DUPLO")
+            && !tipoNormalizado.equals("FAMILIA")) {
+            throw new NegocioException("Tipo de quarto invalido. Use INDIVIDUAL, DUPLO ou FAMILIA.");
+        }
+
+        return tipoNormalizado;
     }
 }
 

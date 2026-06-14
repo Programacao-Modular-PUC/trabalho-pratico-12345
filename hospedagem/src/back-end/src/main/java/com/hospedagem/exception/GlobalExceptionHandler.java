@@ -19,6 +19,22 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(Map.of("erro", ex.getMessage()));
     }
 
+    @ExceptionHandler({
+        IllegalArgumentException.class,
+        NullPointerException.class,
+        DataInvalidaException.class,
+        CapacidadeExcedidaException.class,
+        RecursoNaoPermitidoException.class
+    })
+    public ResponseEntity<Map<String, String>> handleRequisicaoInvalida(RuntimeException ex) {
+        return ResponseEntity.badRequest().body(Map.of("erro", ex.getMessage()));
+    }
+
+    @ExceptionHandler(QuartoIndisponivelException.class)
+    public ResponseEntity<Map<String, String>> handleQuartoIndisponivel(QuartoIndisponivelException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("erro", ex.getMessage()));
+    }
+
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<Map<String, String>> handleNaoEncontrado(EntityNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("erro", ex.getMessage()));

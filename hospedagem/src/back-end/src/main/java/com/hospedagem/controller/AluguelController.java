@@ -40,7 +40,11 @@ public class AluguelController {
         return service.atualizar(id, dto);
     }
 
-    // Cancelamento de aluguel
+    @PatchMapping("/{id}/cancelar")
+    public Aluguel cancelar(@PathVariable Long id) {
+        return service.cancelar(id);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletar(@PathVariable Long id) {
         service.deletar(id);

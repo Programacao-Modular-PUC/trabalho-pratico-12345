@@ -21,7 +21,10 @@ public class QuartoController {
     }
 
     @GetMapping
-    public List<Quarto> listar() {
+    public List<Quarto> listar(@RequestParam(required = false) String tipo) {
+        if (tipo != null && !tipo.trim().isEmpty()) {
+            return service.listarPorTipo(tipo);
+        }
         return service.listar();
     }
 

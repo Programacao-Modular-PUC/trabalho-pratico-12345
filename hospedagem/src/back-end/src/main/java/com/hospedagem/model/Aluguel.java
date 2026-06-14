@@ -2,6 +2,8 @@ package com.hospedagem.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -30,6 +32,9 @@ public class Aluguel {
     private boolean solicitouBerco;
     private Double valorTotal;
 
+    @Enumerated(EnumType.STRING)
+    private StatusAluguel status = StatusAluguel.ATIVO;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -53,4 +58,7 @@ public class Aluguel {
 
     public Double getValorTotal() { return valorTotal; }
     public void setValorTotal(Double valorTotal) { this.valorTotal = valorTotal; }
+
+    public StatusAluguel getStatus() { return status; }
+    public void setStatus(StatusAluguel status) { this.status = status; }
 }
