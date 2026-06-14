@@ -40,9 +40,16 @@ public class AluguelController {
         return service.atualizar(id, dto);
     }
 
+    // Cancelamento de aluguel
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletar(@PathVariable Long id) {
         service.deletar(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // Histórico por cliente
+    @GetMapping("/cliente/{clienteId}")
+    public List<Aluguel> historicoPorCliente(@PathVariable Long clienteId) {
+        return service.listarPorCliente(clienteId);
     }
 }
