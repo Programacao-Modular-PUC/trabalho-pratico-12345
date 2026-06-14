@@ -1,6 +1,6 @@
 package com.hospedagem.model;
 
-import com.hospedagem.exception.NegocioException;
+import com.hospedagem.exception.RecursoNaoPermitidoException;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
@@ -14,7 +14,11 @@ public class QuartoIndividual extends Quarto {
     @Override
     public double calcularDiaria(int numeroDeHospedes, boolean solicitouBerco) {
         if (solicitouBerco) {
-            throw new NegocioException("Quarto individual nao permite berco.");
+            throw new RecursoNaoPermitidoException(
+                "berço",
+                "Quarto Individual",
+                "quartos individuais não acomodam berço"
+            );
         }
         return getValorBase() + (adicionalPorCama * (numeroDeCamas - 1));
     }
@@ -22,7 +26,11 @@ public class QuartoIndividual extends Quarto {
     @Override
     public int calcularLimiteHospedes(boolean solicitouBerco) {
         if (solicitouBerco) {
-            throw new NegocioException("Quarto individual nao permite berco.");
+            throw new RecursoNaoPermitidoException(
+                "berço",
+                "Quarto Individual",
+                "quartos individuais não acomodam berço"
+            );
         }
         return numeroDeCamas;
     }
@@ -33,4 +41,3 @@ public class QuartoIndividual extends Quarto {
     public Double getAdicionalPorCama() { return adicionalPorCama; }
     public void setAdicionalPorCama(Double adicionalPorCama) { this.adicionalPorCama = adicionalPorCama; }
 }
-

@@ -14,22 +14,9 @@ public class DataInvalidaException extends RuntimeException {
     }
 
     public DataInvalidaException(LocalDate dataEntrada, LocalDate dataSaida) {
-        super(construirMensagem(dataEntrada, dataSaida));
+        super("Data de saída (" + dataSaida + ") deve ser posterior à data de entrada (" + dataEntrada + ").");
         this.dataEntrada = dataEntrada;
         this.dataSaida = dataSaida;
-    }
-
-    private static String construirMensagem(LocalDate entrada, LocalDate saida) {
-        if (entrada == null || saida == null) {
-            return "As datas de entrada e saída não podem ser nulas.";
-        }
-        if (!entrada.isBefore(LocalDate.now())) {
-            // deixa a mensagem genérica; o service detalha o motivo
-        }
-        if (!saida.isAfter(entrada)) {
-            return "Data de saída (" + saida + ") deve ser posterior à data de entrada (" + entrada + ").";
-        }
-        return "Datas inválidas: entrada " + entrada + ", saída " + saida + ".";
     }
 
     public LocalDate getDataEntrada() {

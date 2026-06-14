@@ -10,7 +10,7 @@ public class QuartoIndisponivelException extends RuntimeException {
     }
 
     public QuartoIndisponivelException(Long idQuarto, String motivo) {
-        super("Quarto de id " + idQuarto + " não está disponível: " + motivo);
+        super("Quarto de id " + idQuarto + " não está disponível: " + motivo + ".");
         this.idQuarto = idQuarto;
     }
 
