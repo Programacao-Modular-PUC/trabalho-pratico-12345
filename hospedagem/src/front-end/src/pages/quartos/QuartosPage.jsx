@@ -367,7 +367,8 @@ function QuartoForm({ editing, onDone, residenciasQuery }) {
 
 export default function QuartosPage() {
   const [editing, setEditing] = useState(null);
-  const quartos = useQuartos();
+  const [tipoFiltro, setTipoFiltro] = useState('');
+  const quartos = useQuartos(tipoFiltro);
   const residencias = useResidencias();
   const deleteMutation = useDeleteQuarto();
 
@@ -384,13 +385,30 @@ export default function QuartosPage() {
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_460px]">
         <div className="rounded-md border border-slate-200 bg-white p-4">
-          <h3 className="mb-4 text-base font-semibold text-slate-950">Lista de quartos</h3>
+          <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+            <h3 className="text-base font-semibold text-slate-950">Lista de quartos</h3>
+            <label className="min-w-48 text-sm text-slate-700">
+              Tipo
+              <select
+                value={tipoFiltro}
+                onChange={(event) => setTipoFiltro(event.target.value)}
+                className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+              >
+                <option value="">Todos</option>
+                <option value="INDIVIDUAL">Individual</option>
+                <option value="DUPLO">Duplo</option>
+                <option value="FAMILIA">Familia</option>
+              </select>
+            </label>
+          </div>
 
           {quartos.isLoading ? <LoadingState /> : null}
           {quartos.isError ? (
             <ErrorState message={getApiErrorMessage(quartos.error)} onRetry={quartos.refetch} />
           ) : null}
-          {quartos.isSuccess && quartos.data.length === 0 ? <EmptyState title="Nenhum quarto cadastrado" /> : null}
+          {quartos.isSuccess && quartos.data.length === 0 ? (
+            <EmptyState title={tipoFiltro ? 'Nenhum quarto encontrado para este tipo' : 'Nenhum quarto cadastrado'} />
+          ) : null}
 
           {quartos.isSuccess && quartos.data.length > 0 ? (
             <div className="overflow-x-auto">

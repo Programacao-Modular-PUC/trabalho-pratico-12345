@@ -1,14 +1,17 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
+    cancelAluguel,
     createAluguel,
     deleteAluguel,
     getAluguel,
     listAlugueis,
+    listAlugueisByCliente,
     updateAluguel,
 } from '../services/aluguel.service';
 
 export const aluguelKeys = {
     all: ['alugueis'],
+    byCliente: (clienteId) => ['alugueis', 'cliente', clienteId],
     detail: (id) => ['alugueis', id],
 };
 
@@ -27,6 +30,14 @@ export function useAluguel(id) {
     });
 }
 
+export function useAlugueisByCliente(clienteId) {
+    return useQuery({
+        queryKey: aluguelKeys.byCliente(clienteId),
+        queryFn: () => listAlugueisByCliente(clienteId),
+        enabled: Boolean(clienteId),
+    });
+}
+
 export function useCreateAluguel() {
     const queryClient = useQueryClient();
 
@@ -41,6 +52,15 @@ export function useUpdateAluguel() {
 
     return useMutation({
         mutationFn: ({ id, payload }) => updateAluguel(id, payload),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: aluguelKeys.all }),
+    });
+}
+
+export function useCancelAluguel() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: cancelAluguel,
         onSuccess: () => queryClient.invalidateQueries({ queryKey: aluguelKeys.all }),
     });
 }

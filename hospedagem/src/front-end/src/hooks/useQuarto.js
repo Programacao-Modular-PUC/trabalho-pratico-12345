@@ -9,13 +9,14 @@ import {
 
 export const quartoKeys = {
     all: ['quartos'],
+    list: (tipo) => ['quartos', { tipo: tipo || '' }],
     detail: (id) => ['quartos', id],
 };
 
-export function useQuartos() {
+export function useQuartos(tipo) {
     return useQuery({
-        queryKey: quartoKeys.all,
-        queryFn: listQuartos,
+        queryKey: quartoKeys.list(tipo),
+        queryFn: () => listQuartos(tipo),
     });
 }
 

@@ -1,8 +1,10 @@
 import { api } from '../lib/api';
 
-/** @returns {Promise<Object[]>} */
-export async function listQuartos() {
-  const response = await api.get('/quartos');
+/** @param {string=} tipo @returns {Promise<Object[]>} */
+export async function listQuartos(tipo) {
+  const response = await api.get('/quartos', {
+    params: tipo ? { tipo } : {},
+  });
   return response.data;
 }
 
