@@ -8,6 +8,7 @@ import FormField from '../../components/FormField';
 import PageHeader from '../../components/PageHeader';
 import {
   useAlugueis,
+  useCancelAluguel,
   useCreateAluguel,
   useDeleteAluguel,
   useUpdateAluguel,
@@ -48,6 +49,19 @@ const emptyValues = {
 function getQuartoLabel(quarto) {
   const residencia = quarto.residencia?.nome ? ` - ${quarto.residencia.nome}` : '';
   return `${quarto.tipo}${residencia}`;
+}
+
+function StatusBadge({ status }) {
+  const cancelado = status === 'CANCELADO';
+  const classes = cancelado
+    ? 'border-red-200 bg-red-50 text-red-700'
+    : 'border-emerald-200 bg-emerald-50 text-emerald-700';
+
+  return (
+    <span className={`inline-flex rounded-md border px-2 py-1 text-xs font-medium ${classes}`}>
+      {cancelado ? 'Cancelado' : 'Ativo'}
+    </span>
+  );
 }
 
 function AluguelForm({ editing, onDone, clientesQuery, quartosQuery }) {
@@ -218,11 +232,19 @@ export default function AlugueisPage() {
   const clientes = useClientes();
   const quartos = useQuartos();
   const deleteMutation = useDeleteAluguel();
+  const cancelMutation = useCancelAluguel();
 
   async function handleDelete(id) {
     const confirmed = window.confirm('Remover este aluguel?');
     if (confirmed) {
       await deleteMutation.mutateAsync(id);
+    }
+  }
+
+  async function handleCancel(id) {
+    const confirmed = window.confirm('Cancelar este aluguel?');
+    if (confirmed) {
+      await cancelMutation.mutateAsync(id);
     }
   }
 
@@ -252,35 +274,55 @@ export default function AlugueisPage() {
                     <th className="py-2 pr-4 font-medium">Periodo</th>
                     <th className="py-2 pr-4 font-medium">Hospedes</th>
                     <th className="py-2 pr-4 font-medium">Total</th>
+                    <th className="py-2 pr-4 font-medium">Status</th>
                     <th className="py-2 text-right font-medium">Acoes</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {alugueis.data.map((aluguel) => (
-                    <tr key={aluguel.id}>
-                      <td className="py-3 pr-4 font-medium text-slate-950">{aluguel.cliente?.nome || '-'}</td>
-                      <td className="py-3 pr-4 text-slate-600">{aluguel.quarto?.tipo || '-'}</td>
-                      <td className="py-3 pr-4 text-slate-600">
-                        {aluguel.dataEntrada} a {aluguel.dataSaida}
-                      </td>
-                      <td className="py-3 pr-4 text-slate-600">{aluguel.numeroDeHospedes}</td>
-                      <td className="py-3 pr-4 font-medium text-slate-950">{formatCurrency(aluguel.valorTotal)}</td>
-                      <td className="py-3">
-                        <div className="flex justify-end gap-2">
-                          <ActionButton variant="secondary" onClick={() => setEditing(aluguel)}>
-                            Editar
-                          </ActionButton>
-                          <ActionButton
-                            variant="danger"
-                            onClick={() => handleDelete(aluguel.id)}
-                            disabled={deleteMutation.isPending}
-                          >
-                            Remover
-                          </ActionButton>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  {alugueis.data.map((aluguel) => {
+                    const status = aluguel.status || 'ATIVO';
+                    const cancelado = status === 'CANCELADO';
+
+                    return (
+                      <tr key={aluguel.id}>
+                        <td className="py-3 pr-4 font-medium text-slate-950">{aluguel.cliente?.nome || '-'}</td>
+                        <td className="py-3 pr-4 text-slate-600">{aluguel.quarto?.tipo || '-'}</td>
+                        <td className="py-3 pr-4 text-slate-600">
+                          {aluguel.dataEntrada} a {aluguel.dataSaida}
+                        </td>
+                        <td className="py-3 pr-4 text-slate-600">{aluguel.numeroDeHospedes}</td>
+                        <td className="py-3 pr-4 font-medium text-slate-950">{formatCurrency(aluguel.valorTotal)}</td>
+                        <td className="py-3 pr-4">
+                          <StatusBadge status={status} />
+                        </td>
+                        <td className="py-3">
+                          <div className="flex justify-end gap-2">
+                            <ActionButton
+                              variant="secondary"
+                              onClick={() => setEditing(aluguel)}
+                              disabled={cancelado}
+                            >
+                              Editar
+                            </ActionButton>
+                            <ActionButton
+                              variant="secondary"
+                              onClick={() => handleCancel(aluguel.id)}
+                              disabled={cancelado || cancelMutation.isPending}
+                            >
+                              Cancelar
+                            </ActionButton>
+                            <ActionButton
+                              variant="danger"
+                              onClick={() => handleDelete(aluguel.id)}
+                              disabled={deleteMutation.isPending}
+                            >
+                              Remover
+                            </ActionButton>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -289,6 +331,12 @@ export default function AlugueisPage() {
           {deleteMutation.error ? (
             <div className="mt-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
               {getApiErrorMessage(deleteMutation.error)}
+            </div>
+          ) : null}
+
+          {cancelMutation.error ? (
+            <div className="mt-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+              {getApiErrorMessage(cancelMutation.error)}
             </div>
           ) : null}
         </div>

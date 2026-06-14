@@ -16,6 +16,7 @@ public interface AluguelRepository extends JpaRepository<Aluguel, Long> {
         WHERE a.quarto.id = :quartoId
           AND a.dataEntrada < :dataSaida
           AND a.dataSaida > :dataEntrada
+          AND (a.status IS NULL OR a.status <> com.hospedagem.model.StatusAluguel.CANCELADO)
     """)
     boolean existeConflitoDePeriodo(
         @Param("quartoId") Long quartoId,
@@ -30,6 +31,7 @@ public interface AluguelRepository extends JpaRepository<Aluguel, Long> {
           AND a.id <> :idIgnorar
           AND a.dataEntrada < :dataSaida
           AND a.dataSaida > :dataEntrada
+          AND (a.status IS NULL OR a.status <> com.hospedagem.model.StatusAluguel.CANCELADO)
     """)
     boolean existeConflitoDePeriodoExcluindo(
         @Param("quartoId") Long quartoId,

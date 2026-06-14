@@ -6,13 +6,14 @@ import ActionButton from '../../components/ActionButton';
 import { EmptyState, ErrorState, LoadingState } from '../../components/ApiState';
 import FormField from '../../components/FormField';
 import PageHeader from '../../components/PageHeader';
+import { useAlugueisByCliente } from '../../hooks/useAluguel';
 import {
   useClientes,
   useCreateCliente,
   useDeleteCliente,
   useUpdateCliente,
 } from '../../hooks/useCliente';
-import { getApiErrorMessage } from '../../utils/apiError';
+import { formatCurrency, getApiErrorMessage } from '../../utils/apiError';
 
 const clienteSchema = z.object({
   nome: z.string().min(1, 'Informe o nome.'),
@@ -27,6 +28,19 @@ const emptyValues = {
   email: '',
   telefone: '',
 };
+
+function StatusBadge({ status }) {
+  const cancelado = status === 'CANCELADO';
+  const classes = cancelado
+    ? 'border-red-200 bg-red-50 text-red-700'
+    : 'border-emerald-200 bg-emerald-50 text-emerald-700';
+
+  return (
+    <span className={`inline-flex rounded-md border px-2 py-1 text-xs font-medium ${classes}`}>
+      {cancelado ? 'Cancelado' : 'Ativo'}
+    </span>
+  );
+}
 
 function ClienteForm({ editing, onDone }) {
   const createMutation = useCreateCliente();
@@ -133,15 +147,77 @@ function ClienteForm({ editing, onDone }) {
   );
 }
 
+function ClienteHistorico({ cliente, historicoQuery }) {
+  if (!cliente) {
+    return <EmptyState title="Selecione um cliente para ver o historico" />;
+  }
+
+  return (
+    <div className="rounded-md border border-slate-200 bg-white p-4">
+      <h3 className="text-base font-semibold text-slate-950">Historico de {cliente.nome}</h3>
+
+      <div className="mt-4">
+        {historicoQuery.isLoading ? <LoadingState label="Carregando historico..." /> : null}
+        {historicoQuery.isError ? (
+          <ErrorState message={getApiErrorMessage(historicoQuery.error)} onRetry={historicoQuery.refetch} />
+        ) : null}
+        {historicoQuery.isSuccess && historicoQuery.data.length === 0 ? (
+          <EmptyState title="Nenhum aluguel para este cliente" />
+        ) : null}
+
+        {historicoQuery.isSuccess && historicoQuery.data.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-slate-200 text-sm">
+              <thead>
+                <tr className="text-left text-slate-500">
+                  <th className="py-2 pr-4 font-medium">Quarto</th>
+                  <th className="py-2 pr-4 font-medium">Periodo</th>
+                  <th className="py-2 pr-4 font-medium">Total</th>
+                  <th className="py-2 font-medium">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {historicoQuery.data.map((aluguel) => {
+                  const status = aluguel.status || 'ATIVO';
+
+                  return (
+                    <tr key={aluguel.id}>
+                      <td className="py-3 pr-4 text-slate-600">{aluguel.quarto?.tipo || '-'}</td>
+                      <td className="py-3 pr-4 text-slate-600">
+                        {aluguel.dataEntrada} a {aluguel.dataSaida}
+                      </td>
+                      <td className="py-3 pr-4 font-medium text-slate-950">{formatCurrency(aluguel.valorTotal)}</td>
+                      <td className="py-3">
+                        <StatusBadge status={status} />
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 export default function ClientesPage() {
   const [editing, setEditing] = useState(null);
+  const [clienteHistoricoId, setClienteHistoricoId] = useState(null);
   const clientes = useClientes();
+  const historico = useAlugueisByCliente(clienteHistoricoId);
   const deleteMutation = useDeleteCliente();
+
+  const clienteSelecionado = clientes.data?.find((cliente) => cliente.id === clienteHistoricoId);
 
   async function handleDelete(id) {
     const confirmed = window.confirm('Remover este cliente?');
     if (confirmed) {
       await deleteMutation.mutateAsync(id);
+      if (clienteHistoricoId === id) {
+        setClienteHistoricoId(null);
+      }
     }
   }
 
@@ -182,6 +258,9 @@ export default function ClientesPage() {
                       <td className="py-3 pr-4 text-slate-600">{cliente.telefone || '-'}</td>
                       <td className="py-3">
                         <div className="flex justify-end gap-2">
+                          <ActionButton variant="secondary" onClick={() => setClienteHistoricoId(cliente.id)}>
+                            Historico
+                          </ActionButton>
                           <ActionButton variant="secondary" onClick={() => setEditing(cliente)}>
                             Editar
                           </ActionButton>
@@ -208,7 +287,10 @@ export default function ClientesPage() {
           ) : null}
         </div>
 
-        <ClienteForm editing={editing} onDone={() => setEditing(null)} />
+        <div className="grid gap-5">
+          <ClienteForm editing={editing} onDone={() => setEditing(null)} />
+          <ClienteHistorico cliente={clienteSelecionado} historicoQuery={historico} />
+        </div>
       </div>
     </section>
   );
