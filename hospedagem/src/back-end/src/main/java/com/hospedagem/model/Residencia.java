@@ -1,6 +1,7 @@
 package com.hospedagem.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.hospedagem.exception.QuartoObrigatorioException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -28,6 +29,16 @@ public class Residencia {
     @OneToMany(mappedBy = "residencia")
     @JsonIgnoreProperties("residencia")
     private List<Quarto> quartos = new ArrayList<>();
+
+    public void adicionarQuarto(Quarto quarto) {
+        if (quarto == null) {
+            throw new QuartoObrigatorioException();
+        }
+        if (!quartos.contains(quarto)) {
+            quartos.add(quarto);
+        }
+        quarto.setResidencia(this);
+    }
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

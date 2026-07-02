@@ -3,7 +3,7 @@ package com.hospedagem.dto;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class AluguelDTO {
 
@@ -15,11 +15,11 @@ public class AluguelDTO {
 
     @NotNull
     @JsonAlias("dataCheckIn")
-    private LocalDate dataEntrada;
+    private LocalDateTime dataEntrada;
 
     @NotNull
     @JsonAlias("dataCheckOut")
-    private LocalDate dataSaida;
+    private LocalDateTime dataSaida;
 
     @JsonAlias("numeroPessoas")
     @Min(1)
@@ -33,11 +33,11 @@ public class AluguelDTO {
     public Long getQuartoId() { return quartoId; }
     public void setQuartoId(Long quartoId) { this.quartoId = quartoId; }
 
-    public LocalDate getDataEntrada() { return dataEntrada; }
-    public void setDataEntrada(LocalDate dataEntrada) { this.dataEntrada = dataEntrada; }
+    public LocalDateTime getDataEntrada() { return dataEntrada; }
+    public void setDataEntrada(LocalDateTime dataEntrada) { this.dataEntrada = dataEntrada; }
 
-    public LocalDate getDataSaida() { return dataSaida; }
-    public void setDataSaida(LocalDate dataSaida) { this.dataSaida = dataSaida; }
+    public LocalDateTime getDataSaida() { return dataSaida; }
+    public void setDataSaida(LocalDateTime dataSaida) { this.dataSaida = dataSaida; }
 
     public int getNumeroDeHospedes() { return numeroDeHospedes; }
     public void setNumeroDeHospedes(int numeroDeHospedes) { this.numeroDeHospedes = numeroDeHospedes; }

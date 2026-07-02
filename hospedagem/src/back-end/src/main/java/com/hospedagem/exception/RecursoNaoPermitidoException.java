@@ -1,6 +1,6 @@
 package com.hospedagem.exception;
 
-public class RecursoNaoPermitidoException extends RuntimeException {
+public class RecursoNaoPermitidoException extends UnsupportedOperationException {
 
     private final String recurso;
     private final String tipoQuarto;

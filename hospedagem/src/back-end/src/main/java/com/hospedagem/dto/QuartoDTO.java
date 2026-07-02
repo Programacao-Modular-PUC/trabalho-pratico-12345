@@ -35,7 +35,7 @@ public class QuartoDTO {
     private TipoCama tipoCama;
 
     @JsonAlias("possuiBerco")
-    private Boolean solicitouBerco;
+    private Boolean possuiBerco;
 
     // quarto familia
     private List<TipoCamaFamilia> listaDeCamas;
@@ -67,8 +67,8 @@ public class QuartoDTO {
     public TipoCama getTipoCama() { return tipoCama; }
     public void setTipoCama(TipoCama tipoCama) { this.tipoCama = tipoCama; }
 
-    public Boolean getSolicitouBerco() { return solicitouBerco; }
-    public void setSolicitouBerco(Boolean solicitouBerco) { this.solicitouBerco = solicitouBerco; }
+    public Boolean getPossuiBerco() { return possuiBerco; }
+    public void setPossuiBerco(Boolean possuiBerco) { this.possuiBerco = possuiBerco; }
 
     public List<TipoCamaFamilia> getListaDeCamas() { return listaDeCamas; }
     public void setListaDeCamas(List<TipoCamaFamilia> listaDeCamas) { this.listaDeCamas = listaDeCamas; }

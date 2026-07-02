@@ -12,6 +12,11 @@ public class QuartoIndividual extends Quarto {
     private Double adicionalPorCama = 30.0;
 
     @Override
+    public String getTipo() {
+        return "INDIVIDUAL";
+    }
+
+    @Override
     public double calcularDiaria(int numeroDeHospedes, boolean solicitouBerco) {
         if (solicitouBerco) {
             throw new RecursoNaoPermitidoException(
@@ -20,7 +25,9 @@ public class QuartoIndividual extends Quarto {
                 "quartos individuais não acomodam berço"
             );
         }
-        return getValorBase() + (adicionalPorCama * (numeroDeCamas - 1));
+        return getValorBase()
+            + (adicionalPorCama * (numeroDeCamas - 1))
+            + calcularAdicionaisComuns();
     }
 
     @Override
@@ -35,9 +42,11 @@ public class QuartoIndividual extends Quarto {
         return numeroDeCamas;
     }
 
-    public int getNumeroDeCamas() { return numeroDeCamas; }
+    @Override
+    public Integer getNumeroDeCamas() { return numeroDeCamas; }
     public void setNumeroDeCamas(int numeroDeCamas) { this.numeroDeCamas = numeroDeCamas; }
 
+    @Override
     public Double getAdicionalPorCama() { return adicionalPorCama; }
     public void setAdicionalPorCama(Double adicionalPorCama) { this.adicionalPorCama = adicionalPorCama; }
 }

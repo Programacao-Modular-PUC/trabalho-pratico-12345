@@ -13,3 +13,14 @@ export function formatCurrency(value) {
     currency: 'BRL',
   }).format(Number(value || 0));
 }
+
+export function formatDateTime(value) {
+  if (!value) {
+    return '-';
+  }
+
+  return new Intl.DateTimeFormat('pt-BR', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  }).format(new Date(value));
+}

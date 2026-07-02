@@ -8,23 +8,17 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(NegocioException.class)
-    public ResponseEntity<Map<String, String>> handleNegocio(NegocioException ex) {
-        return ResponseEntity.badRequest().body(Map.of("erro", ex.getMessage()));
-    }
-
     @ExceptionHandler({
         IllegalArgumentException.class,
-        NullPointerException.class,
-        DataInvalidaException.class,
-        CapacidadeExcedidaException.class,
-        RecursoNaoPermitidoException.class
+        UnsupportedOperationException.class,
+        AlteracaoTipoQuartoNaoPermitidaException.class,
+        AluguelJaCanceladoException.class
     })
     public ResponseEntity<Map<String, String>> handleRequisicaoInvalida(RuntimeException ex) {
         return ResponseEntity.badRequest().body(Map.of("erro", ex.getMessage()));
@@ -32,6 +26,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(QuartoIndisponivelException.class)
     public ResponseEntity<Map<String, String>> handleQuartoIndisponivel(QuartoIndisponivelException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("erro", ex.getMessage()));
+    }
+
+    @ExceptionHandler({
+        PagamentoConfirmadoImpedeCancelamentoException.class,
+        PagamentoJaConfirmadoException.class
+    })
+    public ResponseEntity<Map<String, String>> handleConflitoDeEstado(IllegalStateException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("erro", ex.getMessage()));
     }
 
@@ -47,12 +49,12 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> handleValidacao(MethodArgumentNotValidException ex) {
-        Map<String, Object> erros = new HashMap<>();
-        ex.getBindingResult().getFieldErrors().forEach(fe ->
-            erros.put(fe.getField(), fe.getDefaultMessage())
-        );
-        return ResponseEntity.badRequest().body(erros);
+    public ResponseEntity<Map<String, String>> handleValidacao(MethodArgumentNotValidException ex) {
+        String mensagem = ex.getBindingResult().getFieldErrors().stream()
+            .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
+            .sorted()
+            .collect(Collectors.joining("; "));
+        return ResponseEntity.badRequest().body(Map.of("erro", mensagem));
     }
 }
 

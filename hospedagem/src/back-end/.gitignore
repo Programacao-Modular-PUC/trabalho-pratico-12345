@@ -1,5 +1,7 @@
 
 /target/
+/.mvn/apache-maven-*/
+/.mvn/*-bin.zip
 /*.class
 /*.jar
 /*.war

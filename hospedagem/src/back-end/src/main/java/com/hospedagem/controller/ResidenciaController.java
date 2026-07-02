@@ -1,7 +1,7 @@
 package com.hospedagem.controller;
 
 import com.hospedagem.dto.ResidenciaDTO;
-import com.hospedagem.model.Residencia;
+import com.hospedagem.dto.ResidenciaResponse;
 import com.hospedagem.service.ResidenciaService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -21,23 +21,24 @@ public class ResidenciaController {
     }
 
     @GetMapping
-    public List<Residencia> listar() {
-        return service.listar();
+    public List<ResidenciaResponse> listar() {
+        return service.listar().stream().map(ResidenciaResponse::new).toList();
     }
 
     @GetMapping("/{id}")
-    public Residencia buscar(@PathVariable Long id) {
-        return service.buscarPorId(id);
+    public ResidenciaResponse buscar(@PathVariable Long id) {
+        return new ResidenciaResponse(service.buscarPorId(id));
     }
 
     @PostMapping
-    public ResponseEntity<Residencia> criar(@RequestBody @Valid ResidenciaDTO dto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.criar(dto));
+    public ResponseEntity<ResidenciaResponse> criar(@RequestBody @Valid ResidenciaDTO dto) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .body(new ResidenciaResponse(service.criar(dto)));
     }
 
     @PutMapping("/{id}")
-    public Residencia atualizar(@PathVariable Long id, @RequestBody @Valid ResidenciaDTO dto) {
-        return service.atualizar(id, dto);
+    public ResidenciaResponse atualizar(@PathVariable Long id, @RequestBody @Valid ResidenciaDTO dto) {
+        return new ResidenciaResponse(service.atualizar(id, dto));
     }
 
     @DeleteMapping("/{id}")

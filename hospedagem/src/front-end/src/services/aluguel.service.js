@@ -12,6 +12,18 @@ export async function listAlugueisByCliente(clienteId) {
     return response.data;
 }
 
+/** @param {number} residenciaId @returns {Promise<Object[]>} */
+export async function listAlugueisByResidencia(residenciaId) {
+    const response = await api.get(`/alugueis/residencia/${residenciaId}`);
+    return response.data;
+}
+
+/** @param {number} id @returns {Promise<Object>} */
+export async function getReciboAluguel(id) {
+    const response = await api.get(`/alugueis/${id}/recibo`);
+    return response.data;
+}
+
 /** @param {number} id @returns {Promise<Object>} */
 export async function getAluguel(id) {
     const response = await api.get(`/alugueis/${id}`);

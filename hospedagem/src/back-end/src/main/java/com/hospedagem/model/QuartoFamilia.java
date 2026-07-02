@@ -19,12 +19,17 @@ public class QuartoFamilia extends Quarto {
     private int quantidadeDeAmbientes;
 
     @Override
+    public String getTipo() {
+        return "FAMILIA";
+    }
+
+    @Override
     public double calcularDiaria(int numeroDeHospedes, boolean solicitouBerco) {
         // calcula adicional por quantidade de hospedes
         double valor = getValorBase() * (1 + (numeroDeHospedes * 0.08));
         double desconto = calcularDesconto(numeroDeHospedes);
 
-        return valor * (1 - desconto);
+        return valor * (1 - desconto) + calcularAdicionaisComuns();
     }
 
     @Override
@@ -32,7 +37,8 @@ public class QuartoFamilia extends Quarto {
         return getCapacidadeMaxima();
     }
 
-    public int getCapacidadeMaxima() {
+    @Override
+    public Integer getCapacidadeMaxima() {
         if (listaDeCamas == null) {
             return 0;
         }
@@ -61,9 +67,11 @@ public class QuartoFamilia extends Quarto {
         return 0.0;
     }
 
+    @Override
     public List<TipoCamaFamilia> getListaDeCamas() { return listaDeCamas; }
     public void setListaDeCamas(List<TipoCamaFamilia> listaDeCamas) { this.listaDeCamas = listaDeCamas; }
 
-    public int getQuantidadeDeAmbientes() { return quantidadeDeAmbientes; }
+    @Override
+    public Integer getQuantidadeDeAmbientes() { return quantidadeDeAmbientes; }
     public void setQuantidadeDeAmbientes(int quantidadeDeAmbientes) { this.quantidadeDeAmbientes = quantidadeDeAmbientes; }
 }

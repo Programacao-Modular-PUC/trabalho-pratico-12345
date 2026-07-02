@@ -4,14 +4,18 @@ import {
     createAluguel,
     deleteAluguel,
     getAluguel,
+    getReciboAluguel,
     listAlugueis,
     listAlugueisByCliente,
+    listAlugueisByResidencia,
     updateAluguel,
 } from '../services/aluguel.service';
 
 export const aluguelKeys = {
     all: ['alugueis'],
     byCliente: (clienteId) => ['alugueis', 'cliente', clienteId],
+    byResidencia: (residenciaId) => ['alugueis', 'residencia', residenciaId],
+    recibo: (id) => ['alugueis', id, 'recibo'],
     detail: (id) => ['alugueis', id],
 };
 
@@ -35,6 +39,22 @@ export function useAlugueisByCliente(clienteId) {
         queryKey: aluguelKeys.byCliente(clienteId),
         queryFn: () => listAlugueisByCliente(clienteId),
         enabled: Boolean(clienteId),
+    });
+}
+
+export function useAlugueisByResidencia(residenciaId) {
+    return useQuery({
+        queryKey: aluguelKeys.byResidencia(residenciaId),
+        queryFn: () => listAlugueisByResidencia(residenciaId),
+        enabled: Boolean(residenciaId),
+    });
+}
+
+export function useReciboAluguel(id) {
+    return useQuery({
+        queryKey: aluguelKeys.recibo(id),
+        queryFn: () => getReciboAluguel(id),
+        enabled: Boolean(id),
     });
 }
 

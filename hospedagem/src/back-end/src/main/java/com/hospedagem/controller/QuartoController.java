@@ -1,7 +1,7 @@
 package com.hospedagem.controller;
 
 import com.hospedagem.dto.QuartoDTO;
-import com.hospedagem.model.Quarto;
+import com.hospedagem.dto.QuartoResponse;
 import com.hospedagem.service.QuartoService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -21,26 +21,27 @@ public class QuartoController {
     }
 
     @GetMapping
-    public List<Quarto> listar(@RequestParam(required = false) String tipo) {
+    public List<QuartoResponse> listar(@RequestParam(required = false) String tipo) {
         if (tipo != null && !tipo.trim().isEmpty()) {
-            return service.listarPorTipo(tipo);
+            return service.listarPorTipo(tipo).stream().map(QuartoResponse::completo).toList();
         }
-        return service.listar();
+        return service.listar().stream().map(QuartoResponse::completo).toList();
     }
 
     @GetMapping("/{id}")
-    public Quarto buscar(@PathVariable Long id) {
-        return service.buscarPorId(id);
+    public QuartoResponse buscar(@PathVariable Long id) {
+        return QuartoResponse.completo(service.buscarPorId(id));
     }
 
     @PostMapping
-    public ResponseEntity<Quarto> criar(@RequestBody @Valid QuartoDTO dto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.criar(dto));
+    public ResponseEntity<QuartoResponse> criar(@RequestBody @Valid QuartoDTO dto) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .body(QuartoResponse.completo(service.criar(dto)));
     }
 
     @PutMapping("/{id}")
-    public Quarto atualizar(@PathVariable Long id, @RequestBody @Valid QuartoDTO dto) {
-        return service.atualizar(id, dto);
+    public QuartoResponse atualizar(@PathVariable Long id, @RequestBody @Valid QuartoDTO dto) {
+        return QuartoResponse.completo(service.atualizar(id, dto));
     }
 
     @DeleteMapping("/{id}")

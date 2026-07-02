@@ -1,5 +1,7 @@
 package com.hospedagem.model;
 
+import com.hospedagem.config.ConfiguracaoGlobalHospedagem;
+import com.hospedagem.exception.RecursoNaoPermitidoException;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -16,6 +18,11 @@ public class QuartoDuplo extends Quarto {
     private boolean possuiBerco;
 
     @Override
+    public String getTipo() {
+        return "DUPLO";
+    }
+
+    @Override
     public double calcularDiaria(int numeroDeHospedes, boolean solicitouBercoNoAluguel) {
         double adicionalTipoCama = switch (tipoCama) {
             case CASAL -> 0.0;
@@ -23,21 +30,36 @@ public class QuartoDuplo extends Quarto {
             case KING -> 60.0;
         };
 
-        boolean usarBerco = possuiBerco || solicitouBercoNoAluguel;
-        double taxaBerco = usarBerco ? 25.0 : 0.0;
+        validarSolicitacaoBerco(solicitouBercoNoAluguel);
+        double taxaBerco = solicitouBercoNoAluguel
+            ? ConfiguracaoGlobalHospedagem.getInstance().getTaxaBerco()
+            : 0.0;
 
-        return getValorBase() + adicionalTipoCama + taxaBerco;
+        return getValorBase() + adicionalTipoCama + taxaBerco + calcularAdicionaisComuns();
     }
 
     @Override
     public int calcularLimiteHospedes(boolean solicitouBercoNoAluguel) {
-        boolean usarBerco = possuiBerco || solicitouBercoNoAluguel;
-        return usarBerco ? 3 : 2;
+        validarSolicitacaoBerco(solicitouBercoNoAluguel);
+        return solicitouBercoNoAluguel ? 3 : 2;
     }
 
+    private void validarSolicitacaoBerco(boolean solicitouBercoNoAluguel) {
+        if (solicitouBercoNoAluguel && !possuiBerco) {
+            throw new RecursoNaoPermitidoException(
+                "berço",
+                "Quarto Duplo",
+                "o quarto não oferece berço"
+            );
+        }
+    }
+
+    @Override
     public TipoCama getTipoCama() { return tipoCama; }
     public void setTipoCama(TipoCama tipoCama) { this.tipoCama = tipoCama; }
 
     public boolean isPossuiBerco() { return possuiBerco; }
+    @Override
+    public Boolean getPossuiBerco() { return possuiBerco; }
     public void setPossuiBerco(boolean possuiBerco) { this.possuiBerco = possuiBerco; }
 }

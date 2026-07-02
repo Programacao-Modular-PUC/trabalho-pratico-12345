@@ -1,6 +1,7 @@
 package com.hospedagem.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.hospedagem.config.ConfiguracaoGlobalHospedagem;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -10,6 +11,7 @@ import jakarta.persistence.InheritanceType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.util.List;
 
 @Entity
 @Table(name = "quartos")
@@ -34,18 +36,27 @@ public abstract class Quarto {
 
     public abstract int calcularLimiteHospedes(boolean solicitouBerco);
 
-    public String getTipo() {
-        if (this instanceof QuartoIndividual) {
-            return "INDIVIDUAL";
+    protected double calcularAdicionaisComuns() {
+        ConfiguracaoGlobalHospedagem configuracao = ConfiguracaoGlobalHospedagem.getInstance();
+        double adicionais = 0.0;
+        if (possuiAR) {
+            adicionais += configuracao.getAdicionalArCondicionado();
         }
-        if (this instanceof QuartoDuplo) {
-            return "DUPLO";
+        if (possuiHidro) {
+            adicionais += configuracao.getAdicionalHidromassagem();
         }
-        if (this instanceof QuartoFamilia) {
-            return "FAMILIA";
-        }
-        throw new IllegalStateException("Tipo de quarto desconhecido: " + this.getClass().getSimpleName());
+        return adicionais;
     }
+
+    public abstract String getTipo();
+
+    public Integer getNumeroDeCamas() { return null; }
+    public Double getAdicionalPorCama() { return null; }
+    public TipoCama getTipoCama() { return null; }
+    public Boolean getPossuiBerco() { return null; }
+    public List<TipoCamaFamilia> getListaDeCamas() { return null; }
+    public Integer getQuantidadeDeAmbientes() { return null; }
+    public Integer getCapacidadeMaxima() { return null; }
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

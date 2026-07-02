@@ -1,21 +1,32 @@
 package com.hospedagem.service;
 
 import com.hospedagem.dto.AluguelDTO;
+import com.hospedagem.dto.ReciboDTO;
 import com.hospedagem.exception.CapacidadeExcedidaException;
 import com.hospedagem.exception.DataInvalidaException;
+import com.hospedagem.exception.NumeroHospedesInvalidoException;
 import com.hospedagem.exception.QuartoIndisponivelException;
 import com.hospedagem.model.Aluguel;
 import com.hospedagem.model.Cliente;
 import com.hospedagem.model.Quarto;
 import com.hospedagem.model.StatusAluguel;
+import com.hospedagem.model.Pagamento;
+import com.hospedagem.model.StatusPagamento;
+import com.hospedagem.notificacao.AluguelCanceladoEvent;
+import com.hospedagem.notificacao.AluguelCriadoEvent;
+import com.hospedagem.notificacao.CentralNotificacoes;
 import com.hospedagem.repository.AluguelRepository;
 import com.hospedagem.repository.ClienteRepository;
 import com.hospedagem.repository.QuartoRepository;
+import com.hospedagem.repository.PagamentoRepository;
+import com.hospedagem.repository.ResidenciaRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -24,13 +35,31 @@ public class AluguelService {
     private final AluguelRepository aluguelRepository;
     private final ClienteRepository clienteRepository;
     private final QuartoRepository quartoRepository;
+    private final PagamentoRepository pagamentoRepository;
+    private final ResidenciaRepository residenciaRepository;
+    private final CalculadoraDiarias calculadoraDiarias;
+    private final ServicoTarifacao servicoTarifacao;
+    private final CentralNotificacoes centralNotificacoes;
+    private final Clock relogio;
 
     public AluguelService(AluguelRepository aluguelRepository,
                           ClienteRepository clienteRepository,
-                          QuartoRepository quartoRepository) {
+                          QuartoRepository quartoRepository,
+                          PagamentoRepository pagamentoRepository,
+                          ResidenciaRepository residenciaRepository,
+                          CalculadoraDiarias calculadoraDiarias,
+                          ServicoTarifacao servicoTarifacao,
+                          CentralNotificacoes centralNotificacoes,
+                          Clock relogio) {
         this.aluguelRepository = aluguelRepository;
         this.clienteRepository = clienteRepository;
         this.quartoRepository = quartoRepository;
+        this.pagamentoRepository = pagamentoRepository;
+        this.residenciaRepository = residenciaRepository;
+        this.calculadoraDiarias = calculadoraDiarias;
+        this.servicoTarifacao = servicoTarifacao;
+        this.centralNotificacoes = centralNotificacoes;
+        this.relogio = relogio;
     }
 
     public List<Aluguel> listar() {
@@ -42,11 +71,22 @@ public class AluguelService {
             .orElseThrow(() -> new EntityNotFoundException("Aluguel nao encontrado para o id: " + id));
     }
 
+    @Transactional
     public Aluguel criar(AluguelDTO dto) {
         Aluguel aluguel = new Aluguel();
         aluguel.setStatus(StatusAluguel.ATIVO);
         preencherECalcular(aluguel, dto, null);
-        return aluguelRepository.save(aluguel);
+        Aluguel aluguelSalvo = aluguelRepository.save(aluguel);
+
+        Pagamento pagamento = new Pagamento();
+        pagamento.setAluguel(aluguelSalvo);
+        pagamento.setValor(aluguelSalvo.getValorTotal());
+        pagamento.setStatus(StatusPagamento.PENDENTE);
+        Pagamento pagamentoSalvo = pagamentoRepository.save(pagamento);
+        aluguelSalvo.setPagamento(pagamentoSalvo);
+        centralNotificacoes.publicar(new AluguelCriadoEvent(aluguelSalvo));
+
+        return aluguelSalvo;
     }
 
     public Aluguel atualizar(Long id, AluguelDTO dto) {
@@ -58,12 +98,10 @@ public class AluguelService {
     public Aluguel cancelar(Long id) {
         Aluguel aluguel = buscarPorId(id);
 
-        if (aluguel.getStatus() == StatusAluguel.CANCELADO) {
-            throw new IllegalArgumentException("Aluguel ja esta cancelado.");
-        }
-
-        aluguel.setStatus(StatusAluguel.CANCELADO);
-        return aluguelRepository.save(aluguel);
+        aluguel.cancelar();
+        Aluguel aluguelSalvo = aluguelRepository.save(aluguel);
+        centralNotificacoes.publicar(new AluguelCanceladoEvent(aluguelSalvo));
+        return aluguelSalvo;
     }
 
     public void deletar(Long id) {
@@ -77,6 +115,29 @@ public class AluguelService {
         return aluguelRepository.findByClienteId(clienteId);
     }
 
+    public List<Aluguel> listarPorResidencia(Long residenciaId) {
+        residenciaRepository.findById(residenciaId)
+            .orElseThrow(() -> new EntityNotFoundException(
+                "Residência não encontrada para o id: " + residenciaId
+            ));
+        return aluguelRepository.findByQuartoResidenciaId(residenciaId);
+    }
+
+    public ReciboDTO gerarRecibo(Long id) {
+        Aluguel aluguel = buscarPorId(id);
+        Pagamento pagamento = pagamentoRepository.findByAluguelId(id)
+            .orElseThrow(() -> new EntityNotFoundException(
+                "Pagamento não encontrado para o aluguel: " + id
+            ));
+
+        return new ReciboDTO(
+            aluguel.getDataEntrada(),
+            aluguel.getDataSaida(),
+            aluguel.getNumeroDeDiarias(),
+            pagamento.getValor()
+        );
+    }
+
     private void preencherECalcular(Aluguel aluguel, AluguelDTO dto, Long idIgnorarConflito) {
         Cliente cliente = clienteRepository.findById(dto.getClienteId())
             .orElseThrow(() -> new EntityNotFoundException("Cliente nao encontrado para o id: " + dto.getClienteId()));
@@ -88,13 +149,21 @@ public class AluguelService {
         validarDisponibilidade(quarto, dto, idIgnorarConflito);
         validarHospedes(quarto, dto);
 
-        long diarias = ChronoUnit.DAYS.between(dto.getDataEntrada(), dto.getDataSaida());
-        double valorDiaria = quarto.calcularDiaria(dto.getNumeroDeHospedes(), dto.isSolicitouBerco());
+        int diarias = calculadoraDiarias.calcular(dto.getDataEntrada(), dto.getDataSaida());
+        double valorDiaria = servicoTarifacao.calcular(
+            quarto,
+            dto.getNumeroDeHospedes(),
+            dto.isSolicitouBerco(),
+            dto.getDataEntrada(),
+            dto.getDataSaida(),
+            cliente
+        );
 
         aluguel.setCliente(cliente);
         aluguel.setQuarto(quarto);
         aluguel.setDataEntrada(dto.getDataEntrada());
         aluguel.setDataSaida(dto.getDataSaida());
+        aluguel.setNumeroDeDiarias(diarias);
         aluguel.setNumeroDeHospedes(dto.getNumeroDeHospedes());
         aluguel.setSolicitouBerco(dto.isSolicitouBerco());
         aluguel.setValorTotal(valorDiaria * diarias);
@@ -119,7 +188,7 @@ public class AluguelService {
 
     private void validarHospedes(Quarto quarto, AluguelDTO dto) {
         if (dto.getNumeroDeHospedes() <= 0) {
-            throw new IllegalArgumentException("Numero de hospedes deve ser maior que zero.");
+            throw new NumeroHospedesInvalidoException();
         }
 
         int limite = quarto.calcularLimiteHospedes(dto.isSolicitouBerco());
@@ -128,14 +197,14 @@ public class AluguelService {
         }
     }
 
-    private void validarDatas(LocalDate dataEntrada, LocalDate dataSaida) {
+    private void validarDatas(LocalDateTime dataEntrada, LocalDateTime dataSaida) {
         if (dataEntrada == null) {
-            throw new NullPointerException("Data de entrada nao pode ser nula.");
+            throw new DataInvalidaException("Data de entrada não pode ser nula.");
         }
         if (dataSaida == null) {
-            throw new NullPointerException("Data de saida nao pode ser nula.");
+            throw new DataInvalidaException("Data de saída não pode ser nula.");
         }
-        if (dataEntrada.isBefore(LocalDate.now())) {
+        if (dataEntrada.toLocalDate().isBefore(LocalDate.now(relogio))) {
             throw new DataInvalidaException("Data de entrada deve ser hoje ou uma data futura.");
         }
         if (!dataSaida.isAfter(dataEntrada)) {

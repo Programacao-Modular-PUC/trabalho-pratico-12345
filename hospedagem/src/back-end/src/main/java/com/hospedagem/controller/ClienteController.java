@@ -1,7 +1,7 @@
 package com.hospedagem.controller;
 
 import com.hospedagem.dto.ClienteDTO;
-import com.hospedagem.model.Cliente;
+import com.hospedagem.dto.ClienteResponse;
 import com.hospedagem.service.ClienteService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -21,23 +21,24 @@ public class ClienteController {
     }
 
     @GetMapping
-    public List<Cliente> listar() {
-        return service.listar();
+    public List<ClienteResponse> listar() {
+        return service.listar().stream().map(ClienteResponse::new).toList();
     }
 
     @GetMapping("/{id}")
-    public Cliente buscar(@PathVariable Long id) {
-        return service.buscarPorId(id);
+    public ClienteResponse buscar(@PathVariable Long id) {
+        return new ClienteResponse(service.buscarPorId(id));
     }
 
     @PostMapping
-    public ResponseEntity<Cliente> criar(@RequestBody @Valid ClienteDTO dto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.criar(dto));
+    public ResponseEntity<ClienteResponse> criar(@RequestBody @Valid ClienteDTO dto) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .body(new ClienteResponse(service.criar(dto)));
     }
 
     @PutMapping("/{id}")
-    public Cliente atualizar(@PathVariable Long id, @RequestBody @Valid ClienteDTO dto) {
-        return service.atualizar(id, dto);
+    public ClienteResponse atualizar(@PathVariable Long id, @RequestBody @Valid ClienteDTO dto) {
+        return new ClienteResponse(service.atualizar(id, dto));
     }
 
     @DeleteMapping("/{id}")

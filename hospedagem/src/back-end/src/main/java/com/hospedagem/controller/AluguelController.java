@@ -1,7 +1,8 @@
 package com.hospedagem.controller;
 
 import com.hospedagem.dto.AluguelDTO;
-import com.hospedagem.model.Aluguel;
+import com.hospedagem.dto.AluguelResponse;
+import com.hospedagem.dto.ReciboDTO;
 import com.hospedagem.service.AluguelService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -21,28 +22,29 @@ public class AluguelController {
     }
 
     @GetMapping
-    public List<Aluguel> listar() {
-        return service.listar();
+    public List<AluguelResponse> listar() {
+        return service.listar().stream().map(AluguelResponse::new).toList();
     }
 
     @GetMapping("/{id}")
-    public Aluguel buscar(@PathVariable Long id) {
-        return service.buscarPorId(id);
+    public AluguelResponse buscar(@PathVariable Long id) {
+        return new AluguelResponse(service.buscarPorId(id));
     }
 
     @PostMapping
-    public ResponseEntity<Aluguel> criar(@RequestBody @Valid AluguelDTO dto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.criar(dto));
+    public ResponseEntity<AluguelResponse> criar(@RequestBody @Valid AluguelDTO dto) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .body(new AluguelResponse(service.criar(dto)));
     }
 
     @PutMapping("/{id}")
-    public Aluguel atualizar(@PathVariable Long id, @RequestBody @Valid AluguelDTO dto) {
-        return service.atualizar(id, dto);
+    public AluguelResponse atualizar(@PathVariable Long id, @RequestBody @Valid AluguelDTO dto) {
+        return new AluguelResponse(service.atualizar(id, dto));
     }
 
     @PatchMapping("/{id}/cancelar")
-    public Aluguel cancelar(@PathVariable Long id) {
-        return service.cancelar(id);
+    public AluguelResponse cancelar(@PathVariable Long id) {
+        return new AluguelResponse(service.cancelar(id));
     }
 
     @DeleteMapping("/{id}")
@@ -53,7 +55,17 @@ public class AluguelController {
 
     // Histórico por cliente
     @GetMapping("/cliente/{clienteId}")
-    public List<Aluguel> historicoPorCliente(@PathVariable Long clienteId) {
-        return service.listarPorCliente(clienteId);
+    public List<AluguelResponse> historicoPorCliente(@PathVariable Long clienteId) {
+        return service.listarPorCliente(clienteId).stream().map(AluguelResponse::new).toList();
+    }
+
+    @GetMapping("/residencia/{residenciaId}")
+    public List<AluguelResponse> historicoPorResidencia(@PathVariable Long residenciaId) {
+        return service.listarPorResidencia(residenciaId).stream().map(AluguelResponse::new).toList();
+    }
+
+    @GetMapping("/{id}/recibo")
+    public ReciboDTO gerarRecibo(@PathVariable Long id) {
+        return service.gerarRecibo(id);
     }
 }

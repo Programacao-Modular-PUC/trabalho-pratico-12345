@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface AluguelRepository extends JpaRepository<Aluguel, Long> {
@@ -20,8 +20,8 @@ public interface AluguelRepository extends JpaRepository<Aluguel, Long> {
     """)
     boolean existeConflitoDePeriodo(
         @Param("quartoId") Long quartoId,
-        @Param("dataEntrada") LocalDate dataEntrada,
-        @Param("dataSaida") LocalDate dataSaida
+        @Param("dataEntrada") LocalDateTime dataEntrada,
+        @Param("dataSaida") LocalDateTime dataSaida
     );
 
     // Verifica conflito excluindo o próprio aluguel (usado no atualizar)
@@ -35,13 +35,17 @@ public interface AluguelRepository extends JpaRepository<Aluguel, Long> {
     """)
     boolean existeConflitoDePeriodoExcluindo(
         @Param("quartoId") Long quartoId,
-        @Param("dataEntrada") LocalDate dataEntrada,
-        @Param("dataSaida") LocalDate dataSaida,
+        @Param("dataEntrada") LocalDateTime dataEntrada,
+        @Param("dataSaida") LocalDateTime dataSaida,
         @Param("idIgnorar") Long idIgnorar
     );
 
     // Histórico de alugueis por cliente
     List<Aluguel> findByClienteId(Long clienteId);
+
+    long countByClienteId(Long clienteId);
+
+    List<Aluguel> findByQuartoResidenciaId(Long residenciaId);
 
     // Filtro por tipo de quarto usando discriminator
     @Query("""

@@ -1,6 +1,6 @@
 package com.hospedagem.exception;
 
-public class QuartoIndisponivelException extends RuntimeException {
+public class QuartoIndisponivelException extends IllegalStateException {
 
     private final Long idQuarto;
 

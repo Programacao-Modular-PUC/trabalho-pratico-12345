@@ -1,6 +1,8 @@
 package com.hospedagem.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.hospedagem.exception.AluguelJaCanceladoException;
+import com.hospedagem.exception.PagamentoConfirmadoImpedeCancelamentoException;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -8,8 +10,10 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "alugueis")
@@ -26,14 +30,29 @@ public class Aluguel {
     @JsonIgnoreProperties("residencia")
     private Quarto quarto;
 
-    private LocalDate dataEntrada;
-    private LocalDate dataSaida;
+    private LocalDateTime dataEntrada;
+    private LocalDateTime dataSaida;
+    private int numeroDeDiarias;
     private int numeroDeHospedes;
     private boolean solicitouBerco;
     private Double valorTotal;
 
     @Enumerated(EnumType.STRING)
     private StatusAluguel status = StatusAluguel.ATIVO;
+
+    @OneToOne(mappedBy = "aluguel", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties("aluguel")
+    private Pagamento pagamento;
+
+    public void cancelar() {
+        if (status == StatusAluguel.CANCELADO) {
+            throw new AluguelJaCanceladoException();
+        }
+        if (pagamento != null && pagamento.getStatus() == StatusPagamento.CONFIRMADO) {
+            throw new PagamentoConfirmadoImpedeCancelamentoException();
+        }
+        status = StatusAluguel.CANCELADO;
+    }
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -44,11 +63,14 @@ public class Aluguel {
     public Quarto getQuarto() { return quarto; }
     public void setQuarto(Quarto quarto) { this.quarto = quarto; }
 
-    public LocalDate getDataEntrada() { return dataEntrada; }
-    public void setDataEntrada(LocalDate dataEntrada) { this.dataEntrada = dataEntrada; }
+    public LocalDateTime getDataEntrada() { return dataEntrada; }
+    public void setDataEntrada(LocalDateTime dataEntrada) { this.dataEntrada = dataEntrada; }
 
-    public LocalDate getDataSaida() { return dataSaida; }
-    public void setDataSaida(LocalDate dataSaida) { this.dataSaida = dataSaida; }
+    public LocalDateTime getDataSaida() { return dataSaida; }
+    public void setDataSaida(LocalDateTime dataSaida) { this.dataSaida = dataSaida; }
+
+    public int getNumeroDeDiarias() { return numeroDeDiarias; }
+    public void setNumeroDeDiarias(int numeroDeDiarias) { this.numeroDeDiarias = numeroDeDiarias; }
 
     public int getNumeroDeHospedes() { return numeroDeHospedes; }
     public void setNumeroDeHospedes(int numeroDeHospedes) { this.numeroDeHospedes = numeroDeHospedes; }
@@ -61,4 +83,7 @@ public class Aluguel {
 
     public StatusAluguel getStatus() { return status; }
     public void setStatus(StatusAluguel status) { this.status = status; }
+
+    public Pagamento getPagamento() { return pagamento; }
+    public void setPagamento(Pagamento pagamento) { this.pagamento = pagamento; }
 }

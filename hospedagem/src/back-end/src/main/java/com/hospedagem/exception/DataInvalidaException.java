@@ -1,11 +1,11 @@
 package com.hospedagem.exception;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
-public class DataInvalidaException extends RuntimeException {
+public class DataInvalidaException extends IllegalArgumentException {
 
-    private final LocalDate dataEntrada;
-    private final LocalDate dataSaida;
+    private final LocalDateTime dataEntrada;
+    private final LocalDateTime dataSaida;
 
     public DataInvalidaException(String mensagem) {
         super(mensagem);
@@ -13,17 +13,17 @@ public class DataInvalidaException extends RuntimeException {
         this.dataSaida = null;
     }
 
-    public DataInvalidaException(LocalDate dataEntrada, LocalDate dataSaida) {
+    public DataInvalidaException(LocalDateTime dataEntrada, LocalDateTime dataSaida) {
         super("Data de saída (" + dataSaida + ") deve ser posterior à data de entrada (" + dataEntrada + ").");
         this.dataEntrada = dataEntrada;
         this.dataSaida = dataSaida;
     }
 
-    public LocalDate getDataEntrada() {
+    public LocalDateTime getDataEntrada() {
         return dataEntrada;
     }
 
-    public LocalDate getDataSaida() {
+    public LocalDateTime getDataSaida() {
         return dataSaida;
     }
 }

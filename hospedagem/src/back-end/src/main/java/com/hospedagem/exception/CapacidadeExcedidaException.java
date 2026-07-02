@@ -1,6 +1,6 @@
 package com.hospedagem.exception;
 
-public class CapacidadeExcedidaException extends RuntimeException {
+public class CapacidadeExcedidaException extends IllegalArgumentException {
 
     private final int capacidadeMaxima;
     private final int hospedesSolicitados;
