@@ -31,6 +31,12 @@ cd src/back-end
 
 No Windows, substitua `./mvnw` por `./mvnw.cmd`. Os XML/TXT ficam em `target/surefire-reports`; o HTML fica em `target/reports/surefire.html`.
 
+### Camadas de teste
+
+- **Unidade** (model, factory, strategy, service com Mockito): cobrem as regras de negócio isoladamente — cálculo de diárias e tarifação, capacidade por tipo de quarto, conflito de período (via mock), cancelamento e confirmação de pagamento.
+- **Repositório** (`repository/AluguelRepositoryTest`, `@DataJpaTest` + perfil `h2`): valida a query `existeConflitoDePeriodo`/`existeConflitoDePeriodoExcluindo` contra o banco real — sobreposição no início, no fim, período contido, período adjacente (sem conflito), aluguel cancelado (não bloqueia) e exclusão do próprio aluguel ao atualizar.
+- **Integração ponta a ponta** (`integration/AluguelFluxoIntegrationTest`, `@SpringBootTest` + `MockMvc` + perfil `h2`): sobe o contexto Spring completo e bate na API REST real, sem mocks — cadastra residência → quarto → cliente, cria o aluguel conferindo o cálculo real de diárias e tarifação, gera o recibo, tenta um overbooking (409), cancela, tenta cancelar de novo (400), confirma o pagamento, e cobre o bloqueio de cancelamento após pagamento confirmado (409) e os 404/400 de entidades inexistentes ou capacidade excedida.
+
 O front é validado com:
 
 ```bash
