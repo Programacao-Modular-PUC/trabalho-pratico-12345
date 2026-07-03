@@ -14,6 +14,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
 @ActiveProfiles("h2")
@@ -83,6 +84,65 @@ class AluguelRepositoryTest {
             1,
             aluguelRepository.findByQuartoResidenciaId(quarto.getResidencia().getId()).size()
         );
+    }
+
+    @Test
+    void periodoSobrepostoNoInicio_deveAcusarConflito() {
+        salvarAluguel(StatusAluguel.ATIVO);
+
+        boolean conflito = aluguelRepository.existeConflitoDePeriodo(
+            quarto.getId(),
+            dataEntrada().minusDays(1),
+            dataEntrada().plusDays(1)
+        );
+
+        assertTrue(conflito);
+    }
+
+    @Test
+    void periodoSobrepostoNoFim_deveAcusarConflito() {
+        salvarAluguel(StatusAluguel.ATIVO);
+
+        boolean conflito = aluguelRepository.existeConflitoDePeriodo(
+            quarto.getId(),
+            dataSaida().minusDays(1),
+            dataSaida().plusDays(1)
+        );
+
+        assertTrue(conflito);
+    }
+
+    @Test
+    void periodoContidoNoExistente_deveAcusarConflito() {
+        salvarAluguel(StatusAluguel.ATIVO);
+
+        boolean conflito = aluguelRepository.existeConflitoDePeriodo(
+            quarto.getId(),
+            dataEntrada().plusHours(6),
+            dataSaida().minusHours(6)
+        );
+
+        assertTrue(conflito);
+    }
+
+    @Test
+    void periodoSobreposto_aoExcluirOProprioAluguel_naoDeveAcusarConflito() {
+        Aluguel existente = new Aluguel();
+        existente.setCliente(cliente);
+        existente.setQuarto(quarto);
+        existente.setDataEntrada(dataEntrada());
+        existente.setDataSaida(dataSaida());
+        existente.setNumeroDeHospedes(1);
+        existente.setNumeroDeDiarias(2);
+        existente.setValorTotal(200.0);
+        existente.setStatus(StatusAluguel.ATIVO);
+        existente = aluguelRepository.saveAndFlush(existente);
+
+        boolean conflito = aluguelRepository.existeConflitoDePeriodoExcluindo(
+            quarto.getId(), dataEntrada(), dataSaida(), existente.getId()
+        );
+
+        assertFalse(conflito);
     }
 
     private void salvarAluguel(StatusAluguel status) {
